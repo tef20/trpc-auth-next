@@ -1,23 +1,33 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { bigint, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const users = sqliteTable("users", {
-  createdAt: text("created_at")
+export const usersTable = pgTable("users", {
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
-  id: text("id").primaryKey(),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   passwordHash: text("password_hash").notNull(),
-  updatedAt: text("updated_at")
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`)
     .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
   username: text("username").notNull().unique(),
 });
 
-export const sessions = sqliteTable("sessions", {
-  expiresAt: integer("expires_at").notNull(),
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+export const sessionsTable = pgTable("sessions", {
+  expiresAt: bigint("expires_at", { mode: "number" }).notNull(),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
     .notNull()
-    .references(() => users.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
 });
+
+export type InsertUser = typeof usersTable.$inferInsert;
+export type SelectUser = typeof usersTable.$inferSelect;
+
+export type InsertSession = typeof sessionsTable.$inferInsert;
+export type SelectSession = typeof sessionsTable.$inferSelect;

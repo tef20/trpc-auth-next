@@ -1,6 +1,9 @@
-import sqlite from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
+import { config } from "dotenv";
+import { env } from "../env.mjs";
 
-const sqliteDb = new sqlite("db/sqlite-database.db");
+config({ path: ".env" }); // or .env.local
 
-export const db = drizzle(sqliteDb);
+const sql = neon(env.DATABASE_URL);
+export const db = drizzle({ client: sql });

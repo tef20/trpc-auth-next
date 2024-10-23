@@ -60,6 +60,7 @@ export default function Home() {
           // auth protected content...
         }
       </div>
+      {/* {view === "signup" && <form></form>} */}
     </div>
   );
 }

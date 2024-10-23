@@ -2,14 +2,17 @@ import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "@/server/trpc";
 import { generateToken } from "@/utils/auth/tokens";
 import { deleteCookie, setCookie } from "cookies-next";
+import { db } from "@/db";
+import { usersTable } from "@/db/schema";
+import { hashPassword } from "@/utils/auth/accounts";
 
 export const appRouter = router({
   // todo implement refreshTokens procedure
   signUp: publicProcedure
     .input(
       z.object({
-        email: z.string(),
-        password: z.string(),
+        email: z.string().email(),
+        password: z.string().min(8),
       }),
     )
     .mutation(async (opts) => {
@@ -18,9 +21,17 @@ export const appRouter = router({
       }
 
       // create new user in DB
-      const newUser = {
-        id: "1",
-      };
+      const passwordHash = await hashPassword(opts.input.password);
+
+      const newUser = (
+        await db
+          .insert(usersTable)
+          .values({
+            username: opts.input.email,
+            passwordHash: passwordHash,
+          })
+          .returning({ id: usersTable.id })
+      )[0];
 
       const newAccessToken = await generateToken(
         {
