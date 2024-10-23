@@ -8,12 +8,18 @@
 [X] handle login 
 [X] handle logout 
 
-[ ] deploy to vercel
+[X] deploy to vercel
 
-[ ] add backend
-  [ ] add database, drizzle + postgres (neon)
+[X] add backend
+  [X] add database, drizzle + postgres (neon)
+  [ ] complete handling of user signup / login / logout
 
-[ ] improve ui with Radix primatives + some CSS
+[X] improve ui with Radix primatives + some CSS
+
+[X] add react hook form to handle signup form (or do it manually?)
+  [ ] move tRPC signup route to its own file
+  [ ] export required types to share with signup form
+  todo: git commit changes
 
 [ ] handle email verification
 [ ] password change

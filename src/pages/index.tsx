@@ -1,3 +1,5 @@
+import Dialog from "@/components/dialog";
+import SignUpForm from "@/components/sign-up-form";
 import { createContextInner } from "@/server/context";
 import { appRouter } from "@/server/routers/_app";
 import { trpc } from "@/utils/trpc";
@@ -33,13 +35,11 @@ export default function Home() {
       <h1>Status: {(user && hello?.greeting) || "Signed out."}</h1>
       {/* <button onClick={() => console.log(user)}>Hello</button> */}
       <div className="flex gap-2">
-        <button
-          onClick={async () =>
-            signUp({ email: "testUser", password: "testPassword" })
-          }
-        >
-          Sign Up
-        </button>
+        <Dialog title="Create Your Account" trigger={"Sign up"}>
+          {/* todo: figure out closing logic */}
+          <SignUpForm onSubmitted={() => {}} />
+        </Dialog>
+
         <button onClick={() => console.log(user?.id)}>Show User ID</button>
         <button
           onClick={() => login({ email: "testUser", password: "testPassword" })}
@@ -60,7 +60,6 @@ export default function Home() {
           // auth protected content...
         }
       </div>
-      {/* {view === "signup" && <form></form>} */}
     </div>
   );
 }
