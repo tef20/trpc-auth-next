@@ -1,0 +1,30 @@
+[X] remove special refresh path
+[X] add token validation / refresh on every request
+  - implement add user role / other information from DB using userId
+
+[X] add ssr / server helpers
+
+[X] handle signup 
+[X] handle login 
+[X] handle logout 
+
+[ ] deploy to vercel
+
+[ ] add backend
+  [ ] add database, drizzle + postgres (neon)
+
+[ ] improve ui with Radix primatives + some CSS
+
+[ ] handle email verification
+[ ] password change
+[ ] do more testing on token verification
+
+[ ] add advanced auth / security stuff, eg. token rotation etc.
+  [X] add token rotation
+    [ ] 
+  [ ] add csrf token 
+    - create with crypto.randomUUID() on server
+    - save in memory in client app
+    - send with mutating actions, eg. POST, DELETE 
+
+[ ] add logger
