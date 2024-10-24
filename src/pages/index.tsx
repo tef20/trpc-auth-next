@@ -86,11 +86,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       transformer: SuperJSON,
     });
 
-    const name = "some name";
-    console.log("name:", name);
-
-    await helpers.me.fetch();
-    await helpers.hello.fetch();
+    await Promise.all([helpers.me.fetch(), helpers.hello.fetch()]);
 
     return {
       props: {

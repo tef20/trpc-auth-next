@@ -77,7 +77,7 @@ export const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
         res: ctx.res,
         secure: true,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         // +30 seconds buffer
         maxAge: getTokenExpiryTimeOffset("access") / 1000 + 30,
       });
@@ -87,7 +87,7 @@ export const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
         res: ctx.res,
         secure: true,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         // +30 seconds buffer
         maxAge: getTokenExpiryTimeOffset("refresh") / 1000 + 30,
       });

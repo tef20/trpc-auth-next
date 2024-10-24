@@ -40,7 +40,7 @@ export default async function handler(
       res,
       secure: true,
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "lax",
       // 15 minutes + 30 seconds buffer
       maxAge: getTokenExpiryTimeOffset("access") + 30,
     });
@@ -49,7 +49,7 @@ export default async function handler(
       req,
       res,
       secure: true,
-      sameSite: "strict",
+      sameSite: "lax",
     });
 
     setCookie("refreshToken", newRefreshToken, {
@@ -57,7 +57,7 @@ export default async function handler(
       res,
       secure: true,
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "lax",
       // 1 week + 30 seconds buffer
       maxAge: getTokenExpiryTimeOffset("refresh") + 30,
       path: "/api/auth/refresh-tokens",

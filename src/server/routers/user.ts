@@ -63,7 +63,7 @@ export const signup = publicProcedure
         res: opts.ctx.res,
         secure: true,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         // 15 minutes + 30 seconds buffer
         maxAge: getTokenExpiryTimeOffset("access") / 1000 + 30,
       });
@@ -73,7 +73,7 @@ export const signup = publicProcedure
         res: opts.ctx.res,
         secure: true,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         // 1 week + 30 seconds buffer
         maxAge: getTokenExpiryTimeOffset("refresh") / 1000 + 30,
       });
@@ -133,7 +133,7 @@ export const login = publicProcedure
         res: opts.ctx.res,
         secure: true,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         // 15 minutes + 30 seconds buffer
         maxAge: getTokenExpiryTimeOffset("access") / 1000 + 30,
       });
@@ -143,7 +143,7 @@ export const login = publicProcedure
         res: opts.ctx.res,
         secure: true,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         // 1 week + 30 seconds buffer
         maxAge: getTokenExpiryTimeOffset("refresh") / 1000 + 30,
       });
