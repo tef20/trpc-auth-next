@@ -1,12 +1,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  signupFormSchema,
-  SignupFormSchema,
-} from "@/server/routers/user-schema";
+import { LoginFormSchema, loginFormSchema } from "@/server/routers/user-schema";
 import { trpc } from "@/utils/trpc";
 
-export default function SignUpForm({
+export default function LoginForm({
   onSubmitted,
 }: {
   onSubmitted: () => void;
@@ -17,21 +14,21 @@ export default function SignUpForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormSchema>({
-    resolver: zodResolver(signupFormSchema),
+  } = useForm<LoginFormSchema>({
+    resolver: zodResolver(loginFormSchema),
     mode: "onTouched",
   });
 
   const {
-    mutate: signup,
-    isPending: signupIsPending,
-    isError: signupIsError,
-    error: signupError,
+    mutate: login,
+    isPending: loginIsPending,
+    isError: loginIsError,
+    error: loginError,
     reset: resetForm,
-  } = trpc.signup.useMutation();
+  } = trpc.login.useMutation();
 
-  function signupNewUser(data: SignupFormSchema) {
-    signup(
+  function loginNewUser(data: LoginFormSchema) {
+    login(
       {
         email: data.email,
         password: data.password,
@@ -39,15 +36,15 @@ export default function SignUpForm({
       {
         onSuccess: () => {
           onSubmitted();
-          resetForm();
           utils.me.invalidate();
+          resetForm();
         },
       },
     );
   }
 
   return (
-    <form className="flow flex flex-col" onSubmit={handleSubmit(signupNewUser)}>
+    <form className="flow flex flex-col" onSubmit={handleSubmit(loginNewUser)}>
       <label className="flex items-center gap-2" htmlFor="email">
         Email
         {errors.email && (
@@ -83,12 +80,12 @@ export default function SignUpForm({
         id="password"
         {...register("password")}
       />
-      {signupIsError && (
+      {loginIsError && (
         <span className="text-red-500" role="alert">
-          {signupError?.message}
+          {loginError?.message}
         </span>
       )}
-      <button disabled={signupIsPending} className="w-fit" type="submit">
+      <button disabled={loginIsPending} className="w-fit" type="submit">
         Submit
       </button>
     </form>

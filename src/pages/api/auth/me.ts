@@ -1,4 +1,5 @@
 import { generateToken, verifyToken } from "@/utils/auth/tokens";
+import { getTokenExpiryTimeOffset } from "@/utils/sessions";
 import { setCookie } from "cookies-next";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -41,7 +42,7 @@ export default async function handler(
       httpOnly: true,
       sameSite: "strict",
       // 15 minutes + 30 seconds buffer
-      maxAge: 15 * 60 + 30,
+      maxAge: getTokenExpiryTimeOffset("access") + 30,
     });
 
     setCookie("X-Token-Max-Age", 15 * 60 + 30, {
@@ -58,7 +59,7 @@ export default async function handler(
       httpOnly: true,
       sameSite: "strict",
       // 1 week + 30 seconds buffer
-      maxAge: 7 * 24 * 60 * 60 + 30,
+      maxAge: getTokenExpiryTimeOffset("refresh") + 30,
       path: "/api/auth/refresh-tokens",
     });
 

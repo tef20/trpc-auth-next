@@ -1,5 +1,12 @@
 import { sql } from "drizzle-orm";
-import { bigint, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  boolean,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -24,6 +31,7 @@ export const sessionsTable = pgTable("sessions", {
   userId: uuid("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
+  invalid: boolean("invalid").notNull().default(false),
 });
 
 export type InsertUser = typeof usersTable.$inferInsert;

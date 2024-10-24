@@ -12,18 +12,18 @@
 
 [X] add backend
   [X] add database, drizzle + postgres (neon)
-  [ ] complete handling of user signup / login / logout
+  [X] complete handling of user signup / login / logout 
+  [X] add new session
 
 [X] improve ui with Radix primatives + some CSS
 
 [X] add react hook form to handle signup form (or do it manually?)
-  [ ] move tRPC signup route to its own file
-  [ ] export required types to share with signup form
-  todo: git commit changes
+  [X] move tRPC signup route to its own file
+  [X] export required types to share with signup form
 
 [ ] handle email verification
 [ ] password change
-[ ] do more testing on token verification
+[X] do more testing on token verification
 
 [ ] add advanced auth / security stuff, eg. token rotation etc.
   [X] add token rotation
@@ -33,4 +33,6 @@
     - save in memory in client app
     - send with mutating actions, eg. POST, DELETE 
 
+[ ] move drizzle migrations to src/db
 [ ] add logger
+[ ] refactor

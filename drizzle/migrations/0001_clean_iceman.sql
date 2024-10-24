@@ -1,0 +1,1 @@
+ALTER TABLE "sessions" ADD COLUMN "invalid" boolean DEFAULT false NOT NULL;

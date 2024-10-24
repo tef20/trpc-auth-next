@@ -11,15 +11,17 @@ export const accessTokenSchema = z.object({
 });
 export const refreshTokenSchema = z.object({
   userId: z.string(),
+  sessionId: z.string(),
 });
 
 export type AccessToken = z.infer<typeof accessTokenSchema>;
 export type RefreshToken = z.infer<typeof refreshTokenSchema>;
 
+// export async function verifyToken<T extends "access" | "refresh">(
 export async function verifyToken<T extends "access" | "refresh">(
   token: string,
   type: T,
-): Promise<T extends "access" ? AccessToken | null : RefreshToken | null> {
+) {
   const secret = type === "access" ? ACCESS_TOKEN_SECRET : REFRESH_TOKEN_SECRET;
   const tokenParser =
     type === "access" ? accessTokenSchema : refreshTokenSchema;
@@ -32,7 +34,7 @@ export async function verifyToken<T extends "access" | "refresh">(
 
     const validatedPayload = tokenParser.parse(payload);
 
-    return validatedPayload;
+    return validatedPayload as T extends "access" ? AccessToken : RefreshToken;
   } catch (err) {
     console.error(`Failed to verify ${type} token:`, err);
 
@@ -43,19 +45,32 @@ export async function verifyToken<T extends "access" | "refresh">(
 export async function generateToken(
   payload: AccessToken | RefreshToken,
   type: "access" | "refresh",
+  expiresAt?: number,
 ) {
-  const expiryOffset = type === "access" ? "15m" : "7d";
   const secret = type === "access" ? ACCESS_TOKEN_SECRET : REFRESH_TOKEN_SECRET;
+  const defaultExpiryOffset = type === "access" ? "15m" : "7d";
 
   const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(expiryOffset)
+    .setExpirationTime(expiresAt ?? defaultExpiryOffset)
     .sign(new TextEncoder().encode(secret));
 
   return token;
 }
 
 // client-safe utils
+export function getTokenExpiry(token: string) {
+  try {
+    const decodedToken = decodeJwt(token);
+
+    return decodedToken.exp;
+  } catch (error) {
+    console.error("Failed to verify access token:", error);
+
+    return null;
+  }
+}
+
 export function isTokenExpired(token: string) {
   try {
     const decodedToken = decodeJwt(token);
@@ -73,6 +88,26 @@ export function isTokenExpired(token: string) {
 
     // treat error as expired
     return true;
+  }
+}
+
+export function getSessionIdFromToken(token: string) {
+  try {
+    const decodedToken = decodeJwt(token);
+
+    return z
+      .object({
+        sessionId: z.string(),
+      })
+      .parse(decodedToken).sessionId;
+  } catch (error) {
+    if (error instanceof ZodError) {
+      console.error("Invalid access token:", error);
+
+      return null;
+    }
+
+    throw error;
   }
 }
 

@@ -1,52 +1,66 @@
 import Dialog from "@/components/dialog";
+import LoginForm from "@/components/login-form";
 import SignUpForm from "@/components/sign-up-form";
 import { createContextInner } from "@/server/context";
 import { appRouter } from "@/server/routers/_app";
 import { trpc } from "@/utils/trpc";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { GetServerSidePropsContext } from "next";
+import { useReducer } from "react";
 import SuperJSON from "superjson";
 
+type FormState = "signup" | "login" | null;
+
+type Action = { type: "SIGNUP" | "LOGIN" | "RESET" };
+
+const initialState: FormState = null;
+
+const reducer = (state: FormState, action: Action): FormState => {
+  switch (action.type) {
+    case "SIGNUP":
+      return "signup";
+    case "LOGIN":
+      return "login";
+    case "RESET":
+      return null;
+    default:
+      return state;
+  }
+};
+
 export default function Home() {
-  // const user = useUser();
+  const utils = trpc.useUtils();
   const { data: user } = trpc.me.useQuery();
-  const { mutate: logout } = trpc.signOut.useMutation();
-
-  const { data: hello } = trpc.hello
-    .useQuery
-
-    // { enabled: typeof user?.id === "string" },
-    ();
-
-  const { mutate: signUp } = trpc.signUp.useMutation({
-    // onSuccess(opts) {
-    //   setUser(opts.user);
-    // },
+  const { mutate: logout } = trpc.signout.useMutation({
+    onSuccess: () => utils.me.invalidate(),
   });
 
-  const { mutate: login } = trpc.login.useMutation({
-    // onSuccess(opts) {
-    //   setUser(opts.user);
-    // },
-  });
+  const { data: hello } = trpc.hello.useQuery();
+
+  const [dialogToOpen, openDialog] = useReducer(reducer, initialState);
 
   return (
     <div className={`flex min-h-1 flex-col`}>
       <h1>Status: {(user && hello?.greeting) || "Signed out."}</h1>
-      {/* <button onClick={() => console.log(user)}>Hello</button> */}
       <div className="flex gap-2">
-        <Dialog title="Create Your Account" trigger={"Sign up"}>
-          {/* todo: figure out closing logic */}
-          <SignUpForm onSubmitted={() => {}} />
+        <Dialog
+          title="Create Your Account"
+          triggerText={"Sign up"}
+          isOpen={dialogToOpen === "signup"}
+          setOpen={() => openDialog({ type: "SIGNUP" })}
+        >
+          <SignUpForm onSubmitted={() => openDialog({ type: "RESET" })} />
         </Dialog>
 
         <button onClick={() => console.log(user?.id)}>Show User ID</button>
-        <button
-          onClick={() => login({ email: "testUser", password: "testPassword" })}
-          disabled={!!user}
+        <Dialog
+          title="Login To Your Account"
+          triggerText={"Login"}
+          isOpen={dialogToOpen === "login"}
+          setOpen={() => openDialog({ type: "LOGIN" })}
         >
-          Login
-        </button>
+          <LoginForm onSubmitted={() => openDialog({ type: "RESET" })} />
+        </Dialog>
         <button onClick={() => logout()} disabled={!user}>
           Logout
         </button>
@@ -75,7 +89,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const name = "some name";
     console.log("name:", name);
 
-    // await helpers.hello.prefetch({ name });
     await helpers.me.fetch();
     await helpers.hello.fetch();
 
@@ -86,7 +99,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   } catch (err) {
     console.error("err:", err);
-    console.log("Not authenticated");
     return {
       props: {
         trpcState: {},

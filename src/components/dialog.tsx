@@ -2,14 +2,22 @@ import * as RadixDialog from "@radix-ui/react-dialog";
 
 type SignupFormProps = {
   title: string;
-  trigger: React.ReactNode;
+  triggerText: React.ReactNode;
   children: React.ReactNode;
+  isOpen: boolean;
+  setOpen: (open: boolean) => void;
 };
 
-export default function Dialog({ children, title, trigger }: SignupFormProps) {
+export default function Dialog({
+  children,
+  title,
+  triggerText,
+  isOpen,
+  setOpen,
+}: SignupFormProps) {
   return (
-    <RadixDialog.Root>
-      <RadixDialog.Trigger>{trigger}</RadixDialog.Trigger>
+    <RadixDialog.Root open={isOpen} onOpenChange={setOpen}>
+      <RadixDialog.Trigger>{triggerText}</RadixDialog.Trigger>
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 bg-[--foreground] opacity-70" />
         <RadixDialog.Content className="fixed left-1/2 top-1/2 w-[clamp(25ch,70%,58ch)] -translate-x-1/2 -translate-y-1/2 rounded-md bg-[--background] px-2 pb-24 pt-6">

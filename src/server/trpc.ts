@@ -3,15 +3,27 @@ import type { Context } from "@/server/context";
 import SuperJSON from "superjson";
 import { generateToken, verifyToken } from "@/utils/auth/tokens";
 import { setCookie } from "cookies-next";
+import {
+  calculateSessionExpiryTime,
+  getTokenExpiryTimeOffset,
+  renewSession,
+} from "@/utils/sessions";
+
+type Meta = {
+  noThrow?: boolean;
+};
 
 // Base router and procedure helpers
-const t = initTRPC.context<Context>().create({ transformer: SuperJSON });
+const t = initTRPC
+  .context<Context>()
+  .meta<Meta>()
+  .create({ transformer: SuperJSON });
 
 export const router = t.router;
 
 export const publicProcedure = t.procedure;
 
-const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
+export const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
   if (!ctx.req || !ctx.res) {
     throw new Error("Request/Response objects are required!");
   }
@@ -38,13 +50,26 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
     if (verifiedRefreshToken) {
       // todo: implement add user role from DB using userId
       // const userRole = await getUserRole(verifiedRefreshToken.userId);
+
+      const session = await renewSession(
+        verifiedRefreshToken.sessionId,
+        verifiedRefreshToken.userId,
+      );
+
+      const accessTokenExpiryTime = calculateSessionExpiryTime("access");
+
+      const refreshTokenExpiryTime = session.expiresAt;
+
       const newAccessToken = await generateToken(
         { userId: verifiedRefreshToken.userId /*role: userRole*/ },
         "access",
+        accessTokenExpiryTime,
       );
+
       const newRefreshToken = await generateToken(
-        { userId: verifiedRefreshToken.userId },
+        { userId: verifiedRefreshToken.userId, sessionId: session.id },
         "refresh",
+        refreshTokenExpiryTime,
       );
 
       setCookie("accessToken", newAccessToken, {
@@ -53,8 +78,8 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
         secure: true,
         httpOnly: true,
         sameSite: "strict",
-        // 15 minutes + 30 seconds buffer
-        maxAge: 15 * 60 + 30,
+        // +30 seconds buffer
+        maxAge: getTokenExpiryTimeOffset("access") / 1000 + 30,
       });
 
       setCookie("refreshToken", newRefreshToken, {
@@ -63,8 +88,8 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
         secure: true,
         httpOnly: true,
         sameSite: "strict",
-        // 1 week + 30 seconds buffer
-        maxAge: 7 * 24 * 60 * 60 + 30,
+        // +30 seconds buffer
+        maxAge: getTokenExpiryTimeOffset("refresh") / 1000 + 30,
       });
 
       return next({
@@ -74,6 +99,15 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
         },
       });
     }
+  }
+
+  if (meta?.noThrow) {
+    return next({
+      ctx: {
+        ...ctx,
+        user: null,
+      },
+    });
   }
 
   throw new TRPCError({
