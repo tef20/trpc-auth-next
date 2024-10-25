@@ -1,4 +1,3 @@
-import { verifyRequestOrigin } from "lucia";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
@@ -34,3 +33,20 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 //     "/",
 //   ],
 // };
+
+function verifyRequestOrigin(
+  originHeader: string,
+  allowedOrigins: string[],
+): boolean {
+  try {
+    const originUrl = new URL(originHeader);
+    return allowedOrigins.some((allowedOrigin) => {
+      const allowedUrl = new URL(`http://${allowedOrigin}`);
+      return originUrl.hostname === allowedUrl.hostname;
+    });
+  } catch {
+    console.error("Error verifying request origin:", originHeader);
+    // Invalid origin header format
+    return false;
+  }
+}

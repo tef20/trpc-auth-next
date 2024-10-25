@@ -2,9 +2,10 @@ import { decodeJwt, jwtVerify, SignJWT } from "jose";
 import { TextEncoder } from "util";
 import { z, ZodError } from "zod";
 import { calculateSessionExpiryTime } from "@/utils/auth/sessions";
+import { env } from "@/env.mjs";
 
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
+const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET;
+const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET;
 
 export const accessTokenSchema = z.object({
   userId: z.string(),
