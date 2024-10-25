@@ -6,10 +6,7 @@ import {
   generateRefreshToken,
   verifyToken,
 } from "@/utils/auth/tokens";
-import {
-  calculateSessionExpiryTime,
-  renewSession,
-} from "@/utils/auth/sessions";
+import { renewSession } from "@/utils/auth/sessions";
 import {
   setAccessTokenCookie,
   setRefreshTokenCookie,
