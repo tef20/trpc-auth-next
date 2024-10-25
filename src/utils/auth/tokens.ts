@@ -1,7 +1,7 @@
 import { decodeJwt, jwtVerify, SignJWT } from "jose";
 import { TextEncoder } from "util";
 import { z, ZodError } from "zod";
-import { calculateSessionExpiryTime } from "../sessions";
+import { calculateSessionExpiryTime } from "@/utils/auth/sessions";
 
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;

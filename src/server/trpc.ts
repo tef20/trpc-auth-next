@@ -6,12 +6,15 @@ import {
   generateRefreshToken,
   verifyToken,
 } from "@/utils/auth/tokens";
-import { calculateSessionExpiryTime, renewSession } from "@/utils/sessions";
+import {
+  calculateSessionExpiryTime,
+  renewSession,
+} from "@/utils/auth/sessions";
 import {
   setAccessTokenCookie,
   setRefreshTokenCookie,
   tokens,
-} from "@/utils/cookies";
+} from "@/utils/auth/cookies";
 
 type Meta = {
   noThrow?: boolean;

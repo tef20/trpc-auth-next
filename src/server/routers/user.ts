@@ -18,13 +18,13 @@ import {
   getUserById,
   getUserCredentialsByEmail,
 } from "@/utils/users";
-import { createSession, invalidateSession } from "@/utils/sessions";
+import { createSession, invalidateSession } from "@/utils/auth/sessions";
 import {
   removeAuthCookies,
   setAccessTokenCookie,
   setRefreshTokenCookie,
   tokens,
-} from "@/utils/cookies";
+} from "@/utils/auth/cookies";
 
 export const signup = publicProcedure
   .input(signupFormSchema)

@@ -1,5 +1,5 @@
 import { deleteCookie, setCookie } from "cookies-next";
-import { getTokenExpiry } from "./auth/tokens";
+import { getTokenExpiry } from "@/utils/auth/tokens";
 import { NextApiRequest, NextApiResponse } from "next";
 import { IncomingMessage, ServerResponse } from "http";
 
