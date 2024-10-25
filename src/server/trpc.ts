@@ -1,13 +1,17 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { Context } from "@/server/context";
 import SuperJSON from "superjson";
-import { generateToken, verifyToken } from "@/utils/auth/tokens";
-import { setCookie } from "cookies-next";
 import {
-  calculateSessionExpiryTime,
-  getTokenExpiryTimeOffset,
-  renewSession,
-} from "@/utils/sessions";
+  generateAccessToken,
+  generateRefreshToken,
+  verifyToken,
+} from "@/utils/auth/tokens";
+import { calculateSessionExpiryTime, renewSession } from "@/utils/sessions";
+import {
+  setAccessTokenCookie,
+  setRefreshTokenCookie,
+  tokens,
+} from "@/utils/cookies";
 
 type Meta = {
   noThrow?: boolean;
@@ -28,8 +32,8 @@ export const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
     throw new Error("Request/Response objects are required!");
   }
 
-  const accessToken = ctx.req.cookies["accessToken"];
-  const refreshToken = ctx.req.cookies["refreshToken"];
+  const accessToken = ctx.req.cookies[tokens.ACCESS];
+  const refreshToken = ctx.req.cookies[tokens.REFRESH];
 
   if (accessToken) {
     const verifiedAccessToken = await verifyToken(accessToken, "access");
@@ -56,41 +60,16 @@ export const enforceUserIsAuthed = t.middleware(async ({ ctx, next, meta }) => {
         verifiedRefreshToken.userId,
       );
 
-      const accessTokenExpiryTime = calculateSessionExpiryTime("access");
-
-      const refreshTokenExpiryTime = session.expiresAt;
-
-      const newAccessToken = await generateToken(
-        { userId: verifiedRefreshToken.userId /*role: userRole*/ },
-        "access",
-        accessTokenExpiryTime,
-      );
-
-      const newRefreshToken = await generateToken(
+      const newAccessToken = await generateAccessToken({
+        userId: verifiedRefreshToken.userId /*role: userRole*/,
+      });
+      const newRefreshToken = await generateRefreshToken(
         { userId: verifiedRefreshToken.userId, sessionId: session.id },
-        "refresh",
-        refreshTokenExpiryTime,
+        session.expiresAt,
       );
 
-      setCookie("accessToken", newAccessToken, {
-        req: ctx.req,
-        res: ctx.res,
-        secure: true,
-        httpOnly: true,
-        sameSite: "lax",
-        // +30 seconds buffer
-        maxAge: getTokenExpiryTimeOffset("access") / 1000 + 30,
-      });
-
-      setCookie("refreshToken", newRefreshToken, {
-        req: ctx.req,
-        res: ctx.res,
-        secure: true,
-        httpOnly: true,
-        sameSite: "lax",
-        // +30 seconds buffer
-        maxAge: getTokenExpiryTimeOffset("refresh") / 1000 + 30,
-      });
+      await setAccessTokenCookie(newAccessToken, ctx.req, ctx.res);
+      await setRefreshTokenCookie(newRefreshToken, ctx.req, ctx.res);
 
       return next({
         ctx: {

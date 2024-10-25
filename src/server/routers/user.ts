@@ -3,8 +3,11 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/trpc";
-import { deleteCookie, setCookie } from "cookies-next";
-import { generateToken, getSessionIdFromToken } from "@/utils/auth/tokens";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  getSessionIdFromToken,
+} from "@/utils/auth/tokens";
 import { verifyPassword } from "@/utils/auth/accounts";
 import {
   loginFormSchema,
@@ -15,12 +18,13 @@ import {
   getUserById,
   getUserCredentialsByEmail,
 } from "@/utils/users";
+import { createSession, invalidateSession } from "@/utils/sessions";
 import {
-  calculateSessionExpiryTime,
-  createSession,
-  getTokenExpiryTimeOffset,
-  invalidateSession,
-} from "@/utils/sessions";
+  removeAuthCookies,
+  setAccessTokenCookie,
+  setRefreshTokenCookie,
+  tokens,
+} from "@/utils/cookies";
 
 export const signup = publicProcedure
   .input(signupFormSchema)
@@ -37,46 +41,21 @@ export const signup = publicProcedure
 
       const session = await createSession(newUser.id);
 
-      const accessTokenExpiryTime = calculateSessionExpiryTime("access");
-      const refreshTokenExpiryTime = session.expiresAt;
+      const newAccessToken = await generateAccessToken({
+        userId: newUser.id,
+        // todo: add user role here
+      });
 
-      const newAccessToken = await generateToken(
-        {
-          userId: newUser.id,
-          // todo: add user role here
-        },
-        "access",
-        accessTokenExpiryTime,
-      );
-
-      const newRefreshToken = await generateToken(
+      const newRefreshToken = await generateRefreshToken(
         {
           userId: newUser.id,
           sessionId: session.id,
         },
-        "refresh",
-        refreshTokenExpiryTime,
+        session.expiresAt,
       );
 
-      setCookie("accessToken", newAccessToken, {
-        req: opts.ctx.req,
-        res: opts.ctx.res,
-        secure: true,
-        httpOnly: true,
-        sameSite: "lax",
-        // 15 minutes + 30 seconds buffer
-        maxAge: getTokenExpiryTimeOffset("access") / 1000 + 30,
-      });
-
-      setCookie("refreshToken", newRefreshToken, {
-        req: opts.ctx.req,
-        res: opts.ctx.res,
-        secure: true,
-        httpOnly: true,
-        sameSite: "lax",
-        // 1 week + 30 seconds buffer
-        maxAge: getTokenExpiryTimeOffset("refresh") / 1000 + 30,
-      });
+      await setAccessTokenCookie(newAccessToken, opts.ctx.req, opts.ctx.res);
+      await setRefreshTokenCookie(newRefreshToken, opts.ctx.req, opts.ctx.res);
 
       return { user: newUser };
     } catch (err) {
@@ -107,46 +86,21 @@ export const login = publicProcedure
 
       const session = await createSession(user.id);
 
-      const accessTokenExpiryTime = calculateSessionExpiryTime("access");
-      const refreshTokenExpiryTime = session.expiresAt;
+      const newAccessToken = await generateAccessToken({
+        userId: user.id,
+        // todo: add user role here
+      });
 
-      const newAccessToken = await generateToken(
-        {
-          userId: user.id,
-          // todo: add user role here
-        },
-        "access",
-        accessTokenExpiryTime,
-      );
-
-      const newRefreshToken = await generateToken(
+      const newRefreshToken = await generateRefreshToken(
         {
           userId: user.id,
           sessionId: session.id,
         },
-        "refresh",
-        refreshTokenExpiryTime,
+        session.expiresAt,
       );
 
-      setCookie("accessToken", newAccessToken, {
-        req: opts.ctx.req,
-        res: opts.ctx.res,
-        secure: true,
-        httpOnly: true,
-        sameSite: "lax",
-        // 15 minutes + 30 seconds buffer
-        maxAge: getTokenExpiryTimeOffset("access") / 1000 + 30,
-      });
-
-      setCookie("refreshToken", newRefreshToken, {
-        req: opts.ctx.req,
-        res: opts.ctx.res,
-        secure: true,
-        httpOnly: true,
-        sameSite: "lax",
-        // 1 week + 30 seconds buffer
-        maxAge: getTokenExpiryTimeOffset("refresh") / 1000 + 30,
-      });
+      await setAccessTokenCookie(newAccessToken, opts.ctx.req, opts.ctx.res);
+      await setRefreshTokenCookie(newRefreshToken, opts.ctx.req, opts.ctx.res);
 
       return { user };
     } catch (err) {
@@ -161,7 +115,7 @@ export const signout = publicProcedure.mutation(async (opts) => {
     throw new Error("Request/Response objects are required!");
   }
 
-  const refreshToken = opts.ctx.req.cookies["refreshToken"];
+  const refreshToken = opts.ctx.req.cookies[tokens.REFRESH];
 
   if (refreshToken) {
     const sessionId = getSessionIdFromToken(refreshToken);
@@ -171,14 +125,7 @@ export const signout = publicProcedure.mutation(async (opts) => {
     }
   }
 
-  deleteCookie("accessToken", {
-    req: opts.ctx.req,
-    res: opts.ctx.res,
-  });
-  deleteCookie("refreshToken", {
-    req: opts.ctx.req,
-    res: opts.ctx.res,
-  });
+  removeAuthCookies(opts.ctx.req, opts.ctx.res);
 
   return { user: null };
 });

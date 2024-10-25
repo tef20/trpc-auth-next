@@ -1,6 +1,7 @@
 import { decodeJwt, jwtVerify, SignJWT } from "jose";
 import { TextEncoder } from "util";
 import { z, ZodError } from "zod";
+import { calculateSessionExpiryTime } from "../sessions";
 
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
@@ -42,17 +43,33 @@ export async function verifyToken<T extends "access" | "refresh">(
   }
 }
 
-export async function generateToken(
-  payload: AccessToken | RefreshToken,
-  type: "access" | "refresh",
-  expiresAt?: number,
-) {
-  const secret = type === "access" ? ACCESS_TOKEN_SECRET : REFRESH_TOKEN_SECRET;
-  const defaultExpiryOffset = type === "access" ? "15m" : "7d";
+export async function generateAccessToken(payload: AccessToken) {
+  return await generateToken(
+    payload,
+    ACCESS_TOKEN_SECRET,
+    calculateSessionExpiryTime("access"),
+  );
+}
 
+export async function generateRefreshToken(
+  payload: RefreshToken,
+  expiresAt?: number | string | Date,
+) {
+  return await generateToken(
+    payload,
+    REFRESH_TOKEN_SECRET,
+    expiresAt ?? calculateSessionExpiryTime("access"),
+  );
+}
+
+async function generateToken(
+  payload: AccessToken | RefreshToken,
+  secret: string,
+  expiresAt: number | string | Date,
+) {
   const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(expiresAt ?? defaultExpiryOffset)
+    .setExpirationTime(expiresAt)
     .sign(new TextEncoder().encode(secret));
 
   return token;
