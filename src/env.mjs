@@ -14,6 +14,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url().min(1),
     REFRESH_TOKEN_SECRET: z.string().min(1),
     ACCESS_TOKEN_SECRET: z.string().min(1),
+    RESEND_API_KEY: z.string().min(1),
   },
   /*
    * Environment variables available on the client (and server).
@@ -31,5 +32,6 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
 });
