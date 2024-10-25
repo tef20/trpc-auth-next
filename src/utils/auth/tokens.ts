@@ -3,6 +3,7 @@ import { TextEncoder } from "util";
 import { z, ZodError } from "zod";
 import { calculateSessionExpiryTime } from "@/utils/auth/sessions";
 import { env } from "@/env.mjs";
+import logger from "@/utils/logger";
 
 const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET;
 const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET;
@@ -38,7 +39,7 @@ export async function verifyToken<T extends "access" | "refresh">(
 
     return validatedPayload as T extends "access" ? AccessToken : RefreshToken;
   } catch (err) {
-    console.error(`Failed to verify ${type} token:`, err);
+    logger.error(`Failed to verify ${type} token:`, err);
 
     return null;
   }
@@ -83,7 +84,7 @@ export function getTokenExpiry(token: string) {
 
     return decodedToken.exp;
   } catch (error) {
-    console.error("Failed to verify access token:", error);
+    logger.error("Failed to verify access token:", error);
 
     return null;
   }
@@ -102,7 +103,7 @@ export function isTokenExpired(token: string) {
 
     return currentTime > decodedToken.exp;
   } catch (error) {
-    console.error("Failed to verify access token:", error);
+    logger.error("Failed to verify access token:", error);
 
     // treat error as expired
     return true;
@@ -120,7 +121,7 @@ export function getSessionIdFromToken(token: string) {
       .parse(decodedToken).sessionId;
   } catch (error) {
     if (error instanceof ZodError) {
-      console.error("Invalid access token:", error);
+      logger.error("Invalid access token:", error);
 
       return null;
     }
@@ -140,7 +141,7 @@ export function getUserIdFromToken(token: string) {
       .parse(decodedToken).userId;
   } catch (error) {
     if (error instanceof ZodError) {
-      console.error("Invalid access token:", error);
+      logger.error("Invalid access token:", error);
 
       return null;
     }

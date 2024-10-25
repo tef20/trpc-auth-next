@@ -1,9 +1,7 @@
-// calc expiry time for session
-// create new session in database
-// return session id and expiry time
 import { db } from "@/db";
 import { sessionsTable, usersTable } from "@/db/schema";
 import { and, eq, gt, not } from "drizzle-orm";
+import logger from "@/utils/logger";
 
 export function calculateSessionExpiryTime(type: "access" | "refresh") {
   const now = Date.now();
@@ -33,7 +31,7 @@ export async function createSession(userId: string) {
         })
     )[0];
   } catch (error) {
-    console.error("Failed to create session:", error);
+    logger.error("Failed to create session:", error);
     throw error;
   }
 }
@@ -68,20 +66,20 @@ export async function isSessionValid(sessionId: string, userId: string) {
       ).length === 1
     );
   } catch (error) {
-    console.error("Failed to validate session:", error);
+    logger.error("Failed to validate session:", error);
     throw error;
   }
 }
 
 export async function invalidateSession(sessionId: string) {
-  console.log("invalidating session", sessionId);
+  logger.log("invalidating session", sessionId);
   try {
     return await db
       .update(sessionsTable)
       .set({ invalid: true })
       .where(eq(sessionsTable.id, sessionId));
   } catch (error) {
-    console.error("Failed to invalidate session:", error);
+    logger.error("Failed to invalidate session:", error);
     throw error;
   }
 }

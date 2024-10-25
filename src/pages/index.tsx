@@ -3,6 +3,7 @@ import LoginForm from "@/components/login-form";
 import SignUpForm from "@/components/sign-up-form";
 import { createContextInner } from "@/server/context";
 import { appRouter } from "@/server/routers/_app";
+import logger from "@/utils/logger";
 import { trpc } from "@/utils/trpc";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { GetServerSidePropsContext } from "next";
@@ -52,7 +53,7 @@ export default function Home() {
           <SignUpForm onSubmitted={() => openDialog({ type: "RESET" })} />
         </Dialog>
 
-        <button onClick={() => console.log(user?.id)}>Show User ID</button>
+        <button onClick={() => logger.log(user?.id)}>Show User ID</button>
         <Dialog
           title="Login To Your Account"
           triggerText={"Login"}
@@ -66,7 +67,7 @@ export default function Home() {
         </button>
         <button
           disabled
-          onClick={() => console.log("Attempting protected action", user?.id)}
+          onClick={() => logger.log("Attempting protected action", user?.id)}
         >
           Auth protected action
         </button>
@@ -94,7 +95,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   } catch (err) {
-    console.error("err:", err);
+    logger.error("err:", err);
     return {
       props: {
         trpcState: {},

@@ -25,6 +25,7 @@ import {
   setRefreshTokenCookie,
   tokens,
 } from "@/utils/auth/cookies";
+import logger from "@/utils/logger";
 
 export const signup = publicProcedure
   .input(signupFormSchema)
@@ -59,7 +60,7 @@ export const signup = publicProcedure
 
       return { user: newUser };
     } catch (err) {
-      console.error("err:", err);
+      logger.error("err:", err);
 
       throw new Error("Unauthorized");
     }
@@ -104,7 +105,7 @@ export const login = publicProcedure
 
       return { user };
     } catch (err) {
-      console.error("err:", err);
+      logger.error("err:", err);
 
       throw new Error("Unauthorized");
     }
@@ -143,7 +144,7 @@ export const hello = protectedProcedure.query(async (opts) => {
 
     return { greeting: `Hello, ${user.username}!` };
   } catch (err) {
-    console.error("err:", err);
+    logger.error("err:", err);
 
     throw new Error("Server error");
   }

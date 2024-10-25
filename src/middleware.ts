@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import logger from "@/utils/logger";
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   if (request.method === "GET") {
@@ -45,7 +46,7 @@ function verifyRequestOrigin(
       return originUrl.hostname === allowedUrl.hostname;
     });
   } catch {
-    console.error("Error verifying request origin:", originHeader);
+    logger.error("Error verifying request origin:", originHeader);
     // Invalid origin header format
     return false;
   }

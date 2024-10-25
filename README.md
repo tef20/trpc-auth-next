@@ -9,9 +9,10 @@ This project is a bit of a playground for me playing around with auth and some o
 - [x] Input validated forms
 - [x] Accessibilty conscious design
 - [x] Server side rendering pages + query cache prehydration
-- [ ] email verification
-- [ ] password change
-- [ ] auto generate openapi documentation
+- [ ] Email verification
+- [ ] Password change
+- [ ] User roles
+- [ ] Auto generate openapi documentation
 
 Visit a working preview [here](https://trpc-auth-next.vercel.app/).
 

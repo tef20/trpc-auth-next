@@ -1,4 +1,5 @@
 import { argon2id, hash, verify } from "argon2";
+import logger from "@/utils/logger";
 
 export async function hashPassword(password: string) {
   try {
@@ -6,7 +7,7 @@ export async function hashPassword(password: string) {
       type: argon2id,
     });
   } catch (error) {
-    console.error("Failed to hash password:", error);
+    logger.error("Failed to hash password:", error);
 
     throw error;
   }

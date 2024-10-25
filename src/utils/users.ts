@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { hashPassword } from "@/utils/auth/accounts";
 import { usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import logger from "@/utils/logger";
 
 export async function createNewUser({
   email,
@@ -23,7 +24,7 @@ export async function createNewUser({
         .returning({ id: usersTable.id })
     )[0];
   } catch (error) {
-    console.error("Failed to create user:", error);
+    logger.error("Failed to create user:", error);
     throw error;
   }
 }
@@ -41,13 +42,13 @@ export async function getUserCredentialsByEmail(email: string) {
         .limit(1)
     )[0];
   } catch (error) {
-    console.error("Failed to get user:", error);
+    logger.error("Failed to get user:", error);
     throw error;
   }
 }
 
 export async function getUserById(userId: string) {
-  console.log("getting userId:", userId);
+  logger.log("getting userId:", userId);
   try {
     return (
       await db
@@ -60,7 +61,7 @@ export async function getUserById(userId: string) {
         .limit(1)
     )[0];
   } catch (error) {
-    console.error("Failed to get user:", error);
+    logger.error("Failed to get user:", error);
     throw error;
   }
 }
