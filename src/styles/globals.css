@@ -1,6 +1,4 @@
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   /* Andy Bell's CSS Reset */
@@ -41,6 +39,7 @@
 
   /* Set core body defaults */
   body {
+    margin: 0;
     min-height: 100vh;
     line-height: 1.5;
   }
@@ -97,6 +96,9 @@
   }
 }
 
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -115,13 +117,43 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Layouts */
+.pancake-stack {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+}
+
+/* https://ryanmulligan.dev/blog/layout-breakouts/ */
+.content-wrapper {
+  --gap: clamp(1rem, 6vw, 3rem);
+  --full: minmax(var(--gap), 1fr);
+  --content: min(74ch, 100% - var(--gap) * 2);
+  --popout: minmax(0, 2rem);
+  --feature: minmax(0, 5rem);
+
+  display: grid;
+  grid-template-columns:
+    [full-start] var(--full)
+    [feature-start] var(--feature)
+    [popout-start] var(--popout)
+    [content-start] var(--content) [content-end]
+    var(--popout) [popout-end]
+    var(--feature) [feature-end]
+    var(--full) [full-end];
+}
+
+.content-wrapper > * {
+  grid-column: content;
+  grid-column: feature-start / feature-end;
+}
+
+/* Utilities */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
 }
-
-/* Utilities */
 
 .flow > * + * {
   margin-block-start: var(--flow-space, 1em);

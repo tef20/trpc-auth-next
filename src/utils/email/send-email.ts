@@ -44,10 +44,21 @@ export async function sendEmail({
     return await resend.emails.send({
       from: `${validatedEmailOptions.fromEmailUsername}@${validatedEmailOptions.fromEmailDomain}`,
       // redirect all emails to this address
-      replyTo: validatedEmailOptions.replyTo,
+      // todo: add a valid reply-to header
+      // replyTo: validatedEmailOptions.replyTo,
       to: validatedEmailOptions.to,
       subject: validatedEmailOptions.subject,
       html: validatedEmailOptions.body,
+      tags: [
+        {
+          name: "action",
+          value: "verification",
+        },
+      ],
+      // todo: add a valid list-unsubscribe header (and others?)
+      // headers: {
+      //   "List-Unsubscribe": `<${validatedEmailOptions.fromEmailUsername}@${validatedEmailOptions.fromEmailDomain}>`,
+      // }
     });
   } catch (error) {
     logger.error(error);

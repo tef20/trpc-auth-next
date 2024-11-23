@@ -7,21 +7,21 @@ const isClientside =
 
 const logger = {
   // eslint-disable-next-line
-  log: (message: any, ...optionalParams: any[]) => {
+  log: (message?: any, ...optionalParams: any[]) => {
     if (!isClientside) {
       console.log(message, ...optionalParams);
     }
   },
 
   // eslint-disable-next-line
-  warn: (message: string, ...optionalParams: any[]) => {
+  warn: (message?: string, ...optionalParams: any[]) => {
     if (!isClientside) {
       console.warn(message, ...optionalParams);
     }
   },
 
   // eslint-disable-next-line
-  error: (message: string, ...optionalParams: any[]) => {
+  error: (message?: any, ...optionalParams: any[]) => {
     console.error(message, ...optionalParams); // Always log errors
   },
 };

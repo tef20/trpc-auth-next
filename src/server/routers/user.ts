@@ -8,8 +8,14 @@ import {
   generateRefreshToken,
   getSessionIdFromToken,
 } from "@/utils/auth/tokens";
-import { verifyPassword } from "@/utils/auth/accounts";
 import {
+  generateNonce,
+  sendWelcomeEmail,
+  verifyPassword,
+} from "@/utils/auth/accounts";
+import {
+  emailVerificationOTPFormSchema,
+  emailVerificationRequestFormSchema,
   loginFormSchema,
   signupFormSchema,
 } from "@/server/routers/user-schema";
@@ -26,18 +32,94 @@ import {
   tokens,
 } from "@/utils/auth/cookies";
 import logger from "@/utils/logger";
+import {
+  cleanupUnverifiedUser,
+  createNewUnverifiedUser,
+  getUnverifiedUserCredentialsByEmail,
+  sendVerificationEmail,
+  verifyUserEmail,
+} from "@/utils/pending-users";
 
-export const signup = publicProcedure
-  .input(signupFormSchema)
+export const requestEmailVerification = publicProcedure
+  .input(emailVerificationRequestFormSchema)
   .mutation(async (opts) => {
     if (!opts.ctx.req || !opts.ctx.res) {
       throw new Error("Request/Response objects are required!");
     }
 
     try {
+      const verificationCode = String(await generateNonce());
+
+      await createNewUnverifiedUser({
+        email: opts.input.email,
+        username: opts.input.username,
+        verificationCode,
+      });
+
+      await sendVerificationEmail({
+        email: opts.input.email,
+        username: opts.input.username,
+        code: verificationCode,
+      });
+
+      return { message: "verification email sent" };
+    } catch (err) {
+      logger.error("err:", err);
+
+      throw new Error("Unauthorized");
+    }
+  });
+
+export const checkEmailVerificationOTP = publicProcedure
+  .input(emailVerificationOTPFormSchema)
+  .mutation(async (opts) => {
+    if (!opts.ctx.req || !opts.ctx.res) {
+      throw new Error("Request/Response objects are required!");
+    }
+
+    try {
+      const { email, code } = opts.input;
+
+      await verifyUserEmail(email, code);
+
+      return { success: true };
+    } catch (err) {
+      logger.error("err:", err);
+
+      throw new Error("Failed to complete signup");
+    }
+  });
+
+export const signup = publicProcedure
+  .input(signupFormSchema)
+  .mutation(async (opts) => {
+    try {
+      if (!opts.ctx.req || !opts.ctx.res) {
+        throw new Error("Request/Response objects are required!");
+      }
+      // check email has been verified
+      //   - get user id from unverified users table
+      const user = await getUnverifiedUserCredentialsByEmail(opts.input.email);
+
+      if (!user) {
+        throw new Error("Unauthorized");
+      }
+
+      const username = user.username;
+
       const newUser = await createNewUser({
         email: opts.input.email,
+        username: username,
         password: opts.input.password,
+        isVerified: true,
+      });
+
+      await cleanupUnverifiedUser(opts.input.email);
+
+      // send welcome email
+      sendWelcomeEmail({
+        email: opts.input.email,
+        username: username,
       });
 
       const session = await createSession(newUser.id);
@@ -62,7 +144,7 @@ export const signup = publicProcedure
     } catch (err) {
       logger.error("err:", err);
 
-      throw new Error("Unauthorized");
+      throw new Error("Failed to complete signup");
     }
   });
 
@@ -75,6 +157,11 @@ export const login = publicProcedure
       }
 
       const user = await getUserCredentialsByEmail(opts.input.email);
+
+      if (user.passwordHash == null) {
+        // user exists but has probably not been verified
+        throw new Error("Unauthorized");
+      }
 
       const passwordIsValid = await verifyPassword(
         opts.input.password,

@@ -16,9 +16,14 @@ export const refreshTokenSchema = z.object({
   userId: z.string(),
   sessionId: z.string(),
 });
+export const verificationTokenSchema = z.object({
+  userId: z.string(),
+  token: z.string(),
+});
 
 export type AccessToken = z.infer<typeof accessTokenSchema>;
 export type RefreshToken = z.infer<typeof refreshTokenSchema>;
+export type VerificationToken = z.infer<typeof verificationTokenSchema>;
 
 // export async function verifyToken<T extends "access" | "refresh">(
 export async function verifyToken<T extends "access" | "refresh">(

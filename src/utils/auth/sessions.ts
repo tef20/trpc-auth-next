@@ -3,7 +3,9 @@ import { sessionsTable, usersTable } from "@/db/schema";
 import { and, eq, gt, not } from "drizzle-orm";
 import logger from "@/utils/logger";
 
-export function calculateSessionExpiryTime(type: "access" | "refresh") {
+export function calculateSessionExpiryTime(
+  type: "access" | "refresh" | "pendingVerification",
+) {
   const now = Date.now();
   const sessionDuration = getTokenExpiryTimeOffset(type);
 
@@ -12,8 +14,17 @@ export function calculateSessionExpiryTime(type: "access" | "refresh") {
   return sessionExpiry.getTime();
 }
 
-export function getTokenExpiryTimeOffset(type: "access" | "refresh") {
-  return type === "refresh" ? 7 * 24 * 60 * 60 * 1000 : 15 * 60 * 1000;
+export function getTokenExpiryTimeOffset(
+  type: "access" | "refresh" | "pendingVerification",
+) {
+  switch (type) {
+    case "refresh":
+      return 7 * 24 * 60 * 60 * 1000;
+    case "pendingVerification":
+      return 30 * 60 * 1000;
+    default:
+      return 15 * 60 * 1000;
+  }
 }
 
 export async function createSession(userId: string) {

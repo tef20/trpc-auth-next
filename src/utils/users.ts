@@ -6,9 +6,13 @@ import logger from "@/utils/logger";
 
 export async function createNewUser({
   email,
+  username,
   password,
+  isVerified = false,
 }: {
   email: string;
+  username: string;
+  isVerified: boolean;
   password: string;
 }) {
   try {
@@ -18,13 +22,29 @@ export async function createNewUser({
       await db
         .insert(usersTable)
         .values({
-          username: email,
-          passwordHash: passwordHash,
+          username: username,
+          email: email.toLowerCase(),
+          passwordHash,
+          isVerified: isVerified,
         })
         .returning({ id: usersTable.id })
     )[0];
   } catch (error) {
     logger.error("Failed to create user:", error);
+    throw error;
+  }
+}
+
+export async function setUserPassword(email: string) {
+  try {
+    return await db
+      .update(usersTable)
+      .set({ passwordHash: await hashPassword("password") })
+      .where(eq(usersTable.email, email))
+      .returning({ id: usersTable.id });
+  } catch (error) {
+    logger.error("Failed to verify user:", error);
+
     throw error;
   }
 }
@@ -38,7 +58,7 @@ export async function getUserCredentialsByEmail(email: string) {
           passwordHash: usersTable.passwordHash,
         })
         .from(usersTable)
-        .where(eq(usersTable.username, email))
+        .where(eq(usersTable.email, email))
         .limit(1)
     )[0];
   } catch (error) {
@@ -54,7 +74,9 @@ export async function getUserById(userId: string) {
       await db
         .select({
           id: usersTable.id,
+          email: usersTable.email,
           username: usersTable.username,
+          isVerified: usersTable.isVerified,
         })
         .from(usersTable)
         .where(eq(usersTable.id, userId))
