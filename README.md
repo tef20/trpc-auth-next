@@ -1,6 +1,6 @@
 # Basic Auth Setup
 
-This project is a bit of a playground for me playing around with auth and some other tools.
+This project is a bit of a playground for me experimenting with auth and some other tools.
 
 ### Basic features
 
@@ -9,7 +9,7 @@ This project is a bit of a playground for me playing around with auth and some o
 - [x] Input validated forms
 - [x] Accessibilty conscious design
 - [x] Server side rendering pages + query cache prehydration
-- [ ] Email verification
+- [x] Email verification (w/ OTP)
 - [ ] Password change
 - [ ] User roles
 - [ ] Auto generate openapi documentation
