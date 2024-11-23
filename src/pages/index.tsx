@@ -33,10 +33,7 @@ export default function Home() {
   const utils = trpc.useUtils();
   const { data: user } = trpc.me.useQuery();
   const { mutate: logout } = trpc.signout.useMutation({
-    onSuccess: () => {
-      utils.me.invalidate();
-      utils.hello.invalidate();
-    },
+    onSuccess: () => utils.invalidate(),
   });
 
   const { data: hello } = trpc.hello.useQuery();
@@ -49,25 +46,27 @@ export default function Home() {
       <main>
         <h1>{(user && hello?.greeting) || "Signed out."}</h1>
         <div className="flex gap-2">
-          <Link href="/sign-up">Sign up</Link>
           <button onClick={() => logger.log(user?.id)}>Show User ID</button>
           {user ? (
             <button onClick={() => logout()} disabled={!user}>
               Logout
             </button>
           ) : (
-            <Dialog
-              title="Login To Your Account"
-              triggerText={"Login"}
-              isOpen={dialogToOpen === "login"}
-              setOpen={() =>
-                openDialog({
-                  type: dialogToOpen === "login" ? "RESET" : "LOGIN",
-                })
-              }
-            >
-              <LoginForm onSubmitted={() => openDialog({ type: "RESET" })} />
-            </Dialog>
+            <>
+              <Dialog
+                title="Login To Your Account"
+                triggerText={"Login"}
+                isOpen={dialogToOpen === "login"}
+                setOpen={() =>
+                  openDialog({
+                    type: dialogToOpen === "login" ? "RESET" : "LOGIN",
+                  })
+                }
+              >
+                <LoginForm onSubmitted={() => openDialog({ type: "RESET" })} />
+              </Dialog>
+              <Link href="/sign-up">Sign up</Link>
+            </>
           )}
         </div>
       </main>

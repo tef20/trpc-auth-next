@@ -36,7 +36,7 @@ export default function LoginForm({
       {
         onSuccess: () => {
           onSubmitted();
-          utils.me.invalidate();
+          utils.invalidate();
           resetForm();
         },
       },
